@@ -7041,23 +7041,16 @@ if not sanitize and not self.is_wrapped:
             if (!page) {
                 Py_RETURN_NONE;
             }
-            #if FZ_VERSION_MAJOR == 1 && FZ_VERSION_MINOR >= 22
-            pdf_filter_factory list[2] = { 0 };
+        #if FZ_VERSION_MAJOR == 1 && FZ_VERSION_MINOR >= 22
+            pdf_filter_options filter = { 0 };
             pdf_sanitize_filter_options sopts = { 0 };
-            pdf_filter_options filter = {
-                1,     // recurse: true
-                1,     // instance forms
-                0,     // do not ascii-escape binary data
-                1,     // no_update
-                NULL,  // end_page_opaque
-                NULL,  // end page
-                list,  // filters
-                };
-            if (sanitize) {
-              list[0].filter = pdf_new_sanitize_filter;
-              list[0].options = &sopts;
-            }
-            #else
+            pdf_filter_factory list[2] = { 0 };
+            filter.recurse = 1;
+            filter.ascii = 0;
+            filter.filters = sanitize ? list : NULL;
+            list[0].filter = pdf_new_sanitize_filter;
+            list[0].options = &sopts;
+        #else
             pdf_filter_options filter = {
                 NULL,  // opaque
                 NULL,  // image filter
@@ -7070,7 +7063,7 @@ if not sanitize and not self.is_wrapped:
                 0      // do not ascii-escape binary data
                 };
             filter.sanitize = sanitize;
-            #endif
+        #endif
             fz_try(gctx) {
                 pdf_filter_page_contents(gctx, page->doc, page, &filter);
             }
@@ -7609,10 +7602,9 @@ def insert_font(self, fontname="helv", fontfile=None, fontbuffer=None,
                 annot_xrefs = [a[0] for a in self.annot_xrefs() if a[1] not in skip_types]
             else:
                 annot_xrefs = [a[0] for a in self.annot_xrefs() if a[1] in types and a[1] not in skip_types]
+
             for xref in annot_xrefs:
-                annot = self.load_annot(xref)
-                annot._yielded=True
-                yield annot
+                yield self.load_annot(xref)
 
 
         def widgets(self, types=None):
@@ -10899,23 +10891,16 @@ CheckParent(self)%}
         {
             pdf_annot *annot = (pdf_annot *) $self;
             pdf_document *pdf = pdf_get_bound_document(gctx, pdf_annot_obj(gctx, annot));
-            #if FZ_VERSION_MAJOR == 1 && FZ_VERSION_MINOR >= 22
-            pdf_filter_factory list[2] = { 0 };
+        #if FZ_VERSION_MAJOR == 1 && FZ_VERSION_MINOR >= 22
+            pdf_filter_options filter = { 0 };
             pdf_sanitize_filter_options sopts = { 0 };
-            pdf_filter_options filter = {
-                1,     // recurse: true
-                1,     // instance forms
-                0,     // do not ascii-escape binary data
-                1,     // no_update
-                NULL,  // end_page_opaque
-                NULL,  // end page
-                list,  // filters
-                };
-            if (sanitize) {
-              list[0].filter = pdf_new_sanitize_filter;
-              list[0].options = &sopts;
-            }
-            #else
+            pdf_filter_factory list[2] = { 0 };
+            filter.recurse = 1;
+            filter.ascii = 0;
+            filter.filters = sanitize ? list : NULL;
+            list[0].filter = pdf_new_sanitize_filter;
+            list[0].options = &sopts;
+        #else
             pdf_filter_options filter = {
                 NULL,  // opaque
                 NULL,  // image filter
@@ -10928,7 +10913,7 @@ CheckParent(self)%}
                 0      // do not ascii-escape binary data
                 };
             filter.sanitize = sanitize;
-            #endif
+        #endif
             fz_try(gctx) {
                 pdf_filter_annot_contents(gctx, pdf, annot, &filter);
             }
